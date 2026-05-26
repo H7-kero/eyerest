@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "简休 - 轻量级桌面护眼休息助手",
   "main": "./out/main/index.js",
-  "author": "",
+  "author": "jianxiu <jianxiu@example.com>",
   "license": "MIT",
   "scripts": {
     "dev": "electron-vite dev",
@@ -52,7 +52,8 @@
       "target": [
         "nsis",
         "portable"
-      ]
+      ],
+      "icon": "assets/icon.png"
     },
     "linux": {
       "target": [
