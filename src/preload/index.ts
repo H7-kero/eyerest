@@ -48,6 +48,9 @@ const api = {
   closeSettings: (): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.WINDOW_SETTINGS_CLOSE),
 
+  minimizeSettings: (): Promise<void> =>
+    ipcRenderer.invoke(IPC_CHANNELS.WINDOW_SETTINGS_MINIMIZE),
+
   openStatistics: (): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.WINDOW_STATISTICS),
 
@@ -60,8 +63,14 @@ const api = {
   closeExercise: (): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.WINDOW_EXERCISE_CLOSE),
 
+  closePreNotify: (): Promise<void> =>
+    ipcRenderer.invoke(IPC_CHANNELS.WINDOW_PRENOTIFY_CLOSE),
+
   previewPopup: (): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.REMINDER_PREVIEW_POPUP),
+
+  previewPreNotify: (): Promise<void> =>
+    ipcRenderer.invoke(IPC_CHANNELS.REMINDER_PRENOTIFY_POPUP),
 
   previewFullscreen: (): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.REMINDER_PREVIEW_FULLSCREEN),
@@ -71,6 +80,9 @@ const api = {
 
   previewSound: (): Promise<void> =>
     ipcRenderer.invoke(IPC_CHANNELS.REMINDER_PREVIEW_SOUND),
+
+  previewSoundType: (soundType: string): Promise<void> =>
+    ipcRenderer.invoke(IPC_CHANNELS.REMINDER_PREVIEW_SOUND_TYPE, soundType),
 
   onTimerTick: (callback: (tick: TimerTick) => void): () => void => {
     const handler = (_event: Electron.IpcRendererEvent, tick: TimerTick) => callback(tick)
@@ -82,6 +94,12 @@ const api = {
     const handler = (_event: Electron.IpcRendererEvent, config: AppConfig) => callback(config)
     ipcRenderer.on(IPC_CHANNELS.CONFIG_CHANGED, handler)
     return () => ipcRenderer.removeListener(IPC_CHANNELS.CONFIG_CHANGED, handler)
+  },
+
+  onPreNotify: (callback: () => void): () => void => {
+    const handler = (_event: Electron.IpcRendererEvent) => callback()
+    ipcRenderer.on(IPC_CHANNELS.TIMER_PRE_NOTIFY, handler)
+    return () => ipcRenderer.removeListener(IPC_CHANNELS.TIMER_PRE_NOTIFY, handler)
   }
 }
 

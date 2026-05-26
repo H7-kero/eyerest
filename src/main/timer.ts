@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events'
 import type { TimerState, TimerTick } from '../shared/types'
-import { IDLE_TIMEOUT } from '../shared/constants'
+import { IDLE_TIMEOUT, PRE_NOTIFY_SECONDS } from '../shared/constants'
 
 export class TimerEngine extends EventEmitter<{
   tick: [tick: TimerTick]
@@ -9,6 +9,7 @@ export class TimerEngine extends EventEmitter<{
   'rest-end': []
   idle: []
   resume: []
+  'pre-notify': []
 }> {
   private state: TimerState = 'idle'
   private workDuration: number
@@ -64,6 +65,38 @@ export class TimerEngine extends EventEmitter<{
     this.emitTick()
   }
 
+  pauseRest(): void {
+    if (this.state !== 'running') return
+    this.state = 'pausedRest'
+    this.stopTimer()
+    this.emit('state-change', this.state)
+  }
+
+  resumeFromPauseRest(): void {
+    if (this.state !== 'pausedRest') return
+    this.state = 'running'
+    this.targetTimestamp = Date.now() + this.remainingSeconds * 1000
+    this.lastTickTimestamp = Date.now()
+    this.startTimer()
+    this.emit('state-change', this.state)
+    this.emit('resume')
+    this.emitTick()
+  }
+
+  resetTimer(): void {
+    this.stopTimer()
+    this.state = 'running'
+    this.remainingSeconds = this.workDuration
+    this.totalSeconds = this.workDuration
+    this.targetTimestamp = Date.now() + this.remainingSeconds * 1000
+    this.lastTickTimestamp = Date.now()
+    this.workStreakStart = Date.now()
+    this.currentStreak = 0
+    this.startTimer()
+    this.emit('state-change', this.state)
+    this.emitTick()
+  }
+
   startRest(): void {
     this.state = 'resting'
     this.remainingSeconds = this.restDuration
@@ -114,6 +147,12 @@ export class TimerEngine extends EventEmitter<{
     this.lastTickTimestamp = now
     if (this.state !== 'running' && this.state !== 'resting') return
     this.remainingSeconds = Math.max(0, Math.round((this.targetTimestamp - now) / 1000))
+    
+    // 提前通知逻辑
+    if (this.state === 'running' && this.remainingSeconds === PRE_NOTIFY_SECONDS) {
+      this.emit('pre-notify')
+    }
+    
     this.emitTick()
     if (this.remainingSeconds <= 0) {
       this.stopTimer()

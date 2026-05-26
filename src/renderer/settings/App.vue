@@ -21,17 +21,25 @@ async function handleConfigUpdate(partial: Partial<AppConfig>) {
 }
 
 function handleClose() { window.eyerest.closeSettings() }
+function handleMinimize() { window.eyerest.minimizeSettings() }
 </script>
 
 <template>
   <div class="h-screen bg-gray-50 flex flex-col rounded-xl overflow-hidden border border-gray-200 shadow-popup">
     <div class="drag-region flex items-center justify-between px-5 py-3 bg-white border-b">
       <h1 class="text-base font-semibold text-gray-800 no-drag">简休 EyeRest · 设置</h1>
-      <button class="no-drag w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 transition-all" @click="handleClose">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
-          <line x1="1" y1="1" x2="13" y2="13" /><line x1="13" y1="1" x2="1" y2="13" />
-        </svg>
-      </button>
+      <div class="flex items-center gap-2 no-drag">
+        <button class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 transition-all" @click="handleMinimize">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
+            <line x1="2" y1="7" x2="12" y2="7" />
+          </svg>
+        </button>
+        <button class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 transition-all" @click="handleClose">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
+            <line x1="1" y1="1" x2="13" y2="13" /><line x1="13" y1="1" x2="1" y2="13" />
+          </svg>
+        </button>
+      </div>
     </div>
 
     <div class="flex border-b bg-white">

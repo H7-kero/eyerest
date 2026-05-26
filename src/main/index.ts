@@ -3,7 +3,7 @@ import { AppStore } from './store'
 import { TimerEngine } from './timer'
 import { ReminderDispatcher } from './dispatcher'
 import { AppTray } from './tray'
-import { createSettingsWindow, createStatisticsWindow, closeSettingsWindow, closeStatisticsWindow } from './windows'
+import { createSettingsWindow, createStatisticsWindow, closeSettingsWindow, closeStatisticsWindow, minimizeSettingsWindow, hideSettingsWindow } from './windows'
 import { setAutoLaunch } from './auto-launch'
 import { IPC_CHANNELS } from '../shared/constants'
 import type { AppConfig, RestRecord } from '../shared/types'
@@ -22,7 +22,10 @@ if (!gotSingleInstanceLock) {
   app.on('second-instance', () => { createSettingsWindow() })
 
   app.whenReady().then(() => {
-    if (process.platform === 'darwin') { app.dock.hide() }
+    // 开发模式下显示 Dock 图标，方便调试
+    if (process.platform === 'darwin' && process.env.NODE_ENV !== 'development') { 
+      app.dock.hide() 
+    }
 
     store = new AppStore()
     const config = store.getConfig()
@@ -33,6 +36,9 @@ if (!gotSingleInstanceLock) {
     tray = new AppTray({
       onPause: () => timer.pause(),
       onResume: () => timer.resume(),
+      onPauseRest: () => timer.pauseRest(),
+      onResumeFromPauseRest: () => timer.resumeFromPauseRest(),
+      onReset: () => timer.resetTimer(),
       onRestNow: () => { timer.pause(); dispatcher.dispatchTimeUp(store.getConfig()) },
       onSettings: () => createSettingsWindow(),
       onStatistics: () => createStatisticsWindow(),
@@ -45,10 +51,24 @@ if (!gotSingleInstanceLock) {
     setupTimerListeners()
     timer.start()
 
+    // 开发模式下自动打开设置窗口
+    if (process.env.NODE_ENV === 'development') {
+      setTimeout(() => {
+        createSettingsWindow()
+      }, 500)
+    }
+
     powerMonitor.on('unlock-screen', () => { if (timer.getState() === 'paused') timer.resume() })
   })
 
-  app.on('window-all-closed', () => {})
+  app.on('window-all-closed', () => {
+    // 在 macOS 上，不要退出应用，让应用在后台运行
+  })
+
+  app.on('activate', () => {
+    // 在 macOS 上，点击 Dock 图标时，重新打开设置窗口
+    createSettingsWindow()
+  })
 
   app.on('before-quit', () => {
     timer?.destroy(); tray?.destroy(); dispatcher?.destroyAll()
@@ -69,6 +89,9 @@ if (!gotSingleInstanceLock) {
 
     ipcMain.handle(IPC_CHANNELS.TIMER_PAUSE, () => timer.pause())
     ipcMain.handle(IPC_CHANNELS.TIMER_RESUME, () => timer.resume())
+    ipcMain.handle(IPC_CHANNELS.TIMER_RESET, () => timer.resetTimer())
+    ipcMain.handle(IPC_CHANNELS.TIMER_PAUSE_REST, () => timer.pauseRest())
+    ipcMain.handle(IPC_CHANNELS.TIMER_RESUME_FROM_PAUSE_REST, () => timer.resumeFromPauseRest())
 
     ipcMain.handle(IPC_CHANNELS.REST_SNOOZE, () => { dispatcher.handleSnooze(); timer.start() })
     ipcMain.handle(IPC_CHANNELS.REST_SKIP, () => { todayRecord.skippedCount++; dispatcher.handleSkip(); timer.start() })
@@ -114,15 +137,21 @@ if (!gotSingleInstanceLock) {
 
     ipcMain.handle(IPC_CHANNELS.WINDOW_SETTINGS, () => createSettingsWindow())
     ipcMain.handle(IPC_CHANNELS.WINDOW_SETTINGS_CLOSE, () => closeSettingsWindow())
+    ipcMain.handle(IPC_CHANNELS.WINDOW_SETTINGS_MINIMIZE, () => hideSettingsWindow())
     ipcMain.handle(IPC_CHANNELS.WINDOW_STATISTICS, () => createStatisticsWindow())
     ipcMain.handle(IPC_CHANNELS.WINDOW_STATISTICS_CLOSE, () => closeStatisticsWindow())
     ipcMain.handle(IPC_CHANNELS.WINDOW_REMINDER_CLOSE, () => dispatcher.closeReminderWindow())
+    ipcMain.handle(IPC_CHANNELS.WINDOW_PRENOTIFY_CLOSE, () => dispatcher.closePreNotifyWindow())
     ipcMain.handle(IPC_CHANNELS.WINDOW_EXERCISE_CLOSE, () => dispatcher.closeExerciseWindow())
 
     ipcMain.handle(IPC_CHANNELS.REMINDER_PREVIEW_POPUP, () => dispatcher.showPopupReminder(store.getConfig()))
     ipcMain.handle(IPC_CHANNELS.REMINDER_PREVIEW_FULLSCREEN, () => dispatcher.showFullscreenReminder(store.getConfig()))
     ipcMain.handle(IPC_CHANNELS.REMINDER_PREVIEW_NOTIFICATION, () => dispatcher.showNotification())
     ipcMain.handle(IPC_CHANNELS.REMINDER_PREVIEW_SOUND, () => dispatcher.playSound(store.getConfig()))
+    ipcMain.handle(IPC_CHANNELS.REMINDER_PREVIEW_SOUND_TYPE, (_event, soundType: string) => {
+      dispatcher.playPreviewSound(soundType, store.getConfig().reminder.soundVolume)
+    })
+    ipcMain.handle(IPC_CHANNELS.REMINDER_PRENOTIFY_POPUP, () => dispatcher.previewPreNotifyReminder(store.getConfig()))
   }
 
   function setupTimerListeners(): void {
@@ -132,7 +161,15 @@ if (!gotSingleInstanceLock) {
       BrowserWindow.getAllWindows().forEach((w) => w.webContents.send(IPC_CHANNELS.TIMER_TICK, tick))
     })
     timer.on('state-change', (state) => { tray.updateState(state) })
+    
+    timer.on('pre-notify', () => {
+      dispatcher.closePreNotifyWindow()
+      dispatcher.showPreNotifyReminder(store.getConfig())
+      BrowserWindow.getAllWindows().forEach((w) => w.webContents.send(IPC_CHANNELS.TIMER_PRE_NOTIFY))
+    })
+    
     timer.on('time-up', () => {
+      dispatcher.closePreNotifyWindow()
       const config = store.getConfig()
       if (config.reminder.forceRest) dispatcher.showFullscreenReminder(config)
       else dispatcher.dispatchTimeUp(config)

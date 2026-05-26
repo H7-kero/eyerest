@@ -4,6 +4,12 @@ import FocusShift from './components/FocusShift.vue'
 import EyeRotation from './components/EyeRotation.vue'
 import Blink from './components/Blink.vue'
 import Breathing from './components/Breathing.vue'
+import WarmPress from './components/WarmPress.vue'
+import EyePalming from './components/EyePalming.vue'
+import FarGaze from './components/FarGaze.vue'
+import NeckStretch from './components/NeckStretch.vue'
+import ShoulderRelax from './components/ShoulderRelax.vue'
+import MassageAcupoints from './components/MassageAcupoints.vue'
 import type { ExerciseItem } from '../../../shared/types'
 
 const exercises = ref<ExerciseItem[]>([])
@@ -12,7 +18,18 @@ const isTransitioning = ref(false)
 const phase = ref<'preparing' | 'active' | 'transition' | 'done'>('preparing')
 const countdown = ref(3)
 
-const componentMap: Record<string, any> = { focusShift: FocusShift, eyeRotation: EyeRotation, blink: Blink, breathing: Breathing }
+const componentMap: Record<string, any> = { 
+  focusShift: FocusShift, 
+  eyeRotation: EyeRotation, 
+  blink: Blink, 
+  breathing: Breathing,
+  warmPress: WarmPress,
+  eyePalming: EyePalming,
+  farGaze: FarGaze,
+  neckStretch: NeckStretch,
+  shoulderRelax: ShoulderRelax,
+  massageAcupoints: MassageAcupoints
+}
 
 async function startSequence() {
   const config = await window.eyerest.getConfig()

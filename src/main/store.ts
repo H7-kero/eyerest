@@ -97,6 +97,7 @@ function mergeConfig(current: AppConfig, partial: Partial<AppConfig>): AppConfig
     timer: { ...current.timer, ...partial.timer },
     reminder: { ...current.reminder, ...partial.reminder },
     exercises: partial.exercises ?? current.exercises,
-    autoLaunch: partial.autoLaunch ?? current.autoLaunch
+    autoLaunch: partial.autoLaunch ?? current.autoLaunch,
+    pauseTimerEnabled: partial.pauseTimerEnabled ?? current.pauseTimerEnabled
   }
 }

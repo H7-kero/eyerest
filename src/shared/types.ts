@@ -1,10 +1,10 @@
-export type TimerState = 'running' | 'paused' | 'resting' | 'idle'
+export type TimerState = 'running' | 'paused' | 'resting' | 'idle' | 'pending' | 'pausedRest'
 
 export type ReminderType = 'popup' | 'fullscreen' | 'notification' | 'sound'
 
 export type SoundType = 'waterdrop' | 'windbell' | 'piano'
 
-export type EyeExerciseType = 'focusShift' | 'eyeRotation' | 'blink' | 'breathing'
+export type EyeExerciseType = 'focusShift' | 'eyeRotation' | 'blink' | 'breathing' | 'warmPress' | 'shoulderRelax' | 'neckStretch' | 'eyePalming' | 'farGaze' | 'massageAcupoints'
 
 export interface TimerConfig {
   workDuration: number
@@ -31,6 +31,7 @@ export interface AppConfig {
   reminder: ReminderConfig
   exercises: ExerciseItem[]
   autoLaunch: boolean
+  pauseTimerEnabled: boolean
 }
 
 export interface RestRecord {
