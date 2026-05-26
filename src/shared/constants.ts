@@ -35,5 +35,7 @@ export function getDefaultExercises(): ExerciseItem[] {
 
 export const EXERCISE_TRANSITION = 3
 
+export { IPC_CHANNELS } from './ipc'
+
 export const APP_NAME = '简休'
 export const APP_NAME_EN = 'EyeRest'

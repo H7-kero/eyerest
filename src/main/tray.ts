@@ -50,7 +50,7 @@ export class AppTray {
     this.tray.setContextMenu(contextMenu)
   }
 
-  private getIconForState(state: TimerState): nativeImage {
+  private getIconForState(state: TimerState): Electron.NativeImage {
     const iconName: Record<TimerState, string> = { running: 'icon-running', resting: 'icon-resting', paused: 'icon-paused', idle: 'icon-idle' }
     try { return nativeImage.createFromPath(join(__dirname, `../assets/${iconName[state]}.png`)) }
     catch { return nativeImage.createFromPath(join(__dirname, '../assets/icon.png')) }
