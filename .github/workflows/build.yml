@@ -28,14 +28,11 @@ jobs:
         env:
           ELECTRON_MIRROR: https://cdn.npmmirror.com/binaries/electron/
 
-      - name: List node modules
-        run: Get-ChildItem -Path node_modules -Name | Select-Object -First 20
-
       - name: Build Electron app
         run: npm run dist:win
         env:
           ELECTRON_MIRROR: https://cdn.npmmirror.com/binaries/electron/
-        continue-on-error: false
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: List release files
         run: Get-ChildItem -Path release -Recurse -Name
@@ -46,14 +43,3 @@ jobs:
           name: win-artifacts
           path: release/**/*
           retention-days: 30
-
-      - name: Release
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            release/**/*.exe
-            release/**/*.zip
-          draft: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
