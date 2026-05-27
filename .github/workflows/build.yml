@@ -28,10 +28,14 @@ jobs:
         env:
           ELECTRON_MIRROR: https://cdn.npmmirror.com/binaries/electron/
 
-      - name: Build Windows app
+      - name: List node modules
+        run: Get-ChildItem -Path node_modules -Name | Select-Object -First 20
+
+      - name: Build Electron app
         run: npm run dist:win
         env:
           ELECTRON_MIRROR: https://cdn.npmmirror.com/binaries/electron/
+        continue-on-error: false
 
       - name: List release files
         run: Get-ChildItem -Path release -Recurse -Name
