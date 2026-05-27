@@ -29,10 +29,9 @@ jobs:
           ELECTRON_MIRROR: https://cdn.npmmirror.com/binaries/electron/
 
       - name: Build Electron app
-        run: npx electron-vite build && npx electron-builder --win -c.win.publish=null
+        run: npx electron-vite build && npx electron-builder --win --publish never
         env:
           ELECTRON_MIRROR: https://cdn.npmmirror.com/binaries/electron/
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: List release files
         run: Get-ChildItem -Path release -Recurse -Name
