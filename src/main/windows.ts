@@ -31,6 +31,6 @@ export function createStatisticsWindow(): BrowserWindow {
 }
 
 export function closeSettingsWindow(): void { if (settingsWindow && !settingsWindow.isDestroyed()) { settingsWindow.close() } }
-export function closeStatisticsWindow(): void { if (statisticsWindow && !settingsWindow.isDestroyed()) { statisticsWindow.close() } }
+export function closeStatisticsWindow(): void { if (statisticsWindow && !statisticsWindow.isDestroyed()) { statisticsWindow.close() } }
 export function minimizeSettingsWindow(): void { if (settingsWindow && !settingsWindow.isDestroyed()) { settingsWindow.minimize() } }
 export function hideSettingsWindow(): void { if (settingsWindow && !settingsWindow.isDestroyed()) { settingsWindow.hide() } }
